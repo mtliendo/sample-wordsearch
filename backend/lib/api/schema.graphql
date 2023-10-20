@@ -1,0 +1,7 @@
+type WordSearch @model @auth(rules: [{ allow: public }]) {
+	id: ID!
+	name: String!
+	columns: Int!
+	rows: Int!
+	wordBank: [String]!
+}

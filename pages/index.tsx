@@ -1,11 +1,21 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import WordSearch from '@blex41/word-search'
+import { API } from 'aws-amplify'
+import { createWordSearch } from '@/src/graphql/mutations'
+import {
+	CreateWordSearchInput,
+	CreateWordSearchMutation,
+	ListWordSearchesQuery,
+} from '@/src/API'
+import { GraphQLResult } from '@aws-amplify/api-graphql'
+import { listWordSearches } from '@/src/graphql/queries'
 
 function WordSearchApp() {
 	const [cols, setCols] = useState(6)
 	const [rows, setRows] = useState(6)
 	const [words, setWords] = useState('')
-	const [wordBank, setWordBank] = useState([])
+	const [wordBank, setWordBank] = useState<[] | string[]>([])
+	const [title, setTitle] = useState('')
 
 	const [grid, setGrid] = useState([])
 
@@ -20,9 +30,33 @@ function WordSearchApp() {
 		}
 
 		const ws = new WordSearch(options)
-		const pickedWords = ws.data.words.map((word) => word.clean)
+		const pickedWords = ws.data.words.map(
+			(word: { clean: Boolean }) => word.clean
+		)
 		setGrid(ws.data.grid)
 		setWordBank(pickedWords)
+	}
+
+	useEffect(() => {
+		const result = API.graphql({
+			query: listWordSearches,
+		}) as Promise<GraphQLResult<ListWordSearchesQuery>>
+
+		result.then((res) => console.log(res.data?.listWordSearches?.items))
+	}, [])
+
+	const handleSave = () => {
+		const result = API.graphql({
+			query: createWordSearch,
+			variables: {
+				input: {
+					columns: cols,
+					rows,
+					wordBank,
+					name: title,
+				} as CreateWordSearchInput,
+			},
+		}) as Promise<GraphQLResult<CreateWordSearchMutation>>
 	}
 
 	return (
@@ -31,7 +65,18 @@ function WordSearchApp() {
 				<section className="hideable">
 					{/* Grid Size Selection */}
 					<div className="flex flex-wrap -mx-2 mb-4">
-						<div className="w-1/2 px-2">
+						<div className="w-1/3 px-2">
+							<label className="block text-gray-700 mb-2">
+								Title
+								<input
+									value={title}
+									placeholder="my wordsearch"
+									onChange={(e) => setTitle(e.target.value)}
+									className="w-full mt-1 p-2 border rounded"
+								/>
+							</label>
+						</div>
+						<div className="w-1/3 px-2">
 							<label className="block text-gray-700 mb-2">
 								Columns:
 								<input
@@ -42,7 +87,7 @@ function WordSearchApp() {
 								/>
 							</label>
 						</div>
-						<div className="w-1/2 px-2">
+						<div className="w-1/3 px-2">
 							<label className="block text-gray-700 mb-2">
 								Rows:
 								<input
@@ -70,12 +115,18 @@ function WordSearchApp() {
 					</div>
 
 					{/* Generate Button */}
-					<div className="mb-4">
+					<div className="mb-4 flex justify-between">
 						<button
 							onClick={handleGenerate}
 							className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
 						>
 							Generate Grid
+						</button>
+						<button
+							onClick={handleSave}
+							className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+						>
+							Save Grid Details
 						</button>
 					</div>
 				</section>
@@ -84,9 +135,9 @@ function WordSearchApp() {
 					<div className="printable-grid bg-white p-4 rounded shadow">
 						<table className="w-full text-center">
 							<tbody>
-								{grid.map((row, rowIndex) => (
+								{grid.map((row: string[], rowIndex) => (
 									<tr key={rowIndex}>
-										{row.map((cell, cellIndex) => (
+										{row.map((cell: string, cellIndex: number) => (
 											<td key={cellIndex} className="border p-2">
 												{cell}
 											</td>
@@ -121,7 +172,7 @@ function WordSearchApp() {
 				<div className="hideable mt-4">
 					<button
 						onClick={() => window.print()}
-						className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+						className="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600"
 					>
 						Print Grid
 					</button>
