@@ -8,6 +8,13 @@ type GeneratedMutation<InputType, OutputType> = string & {
   __generatedMutationOutput: OutputType;
 };
 
+export const generateWordSearchWords = /* GraphQL */ `mutation GenerateWordSearchWords($theme: String!) {
+  generateWordSearchWords(theme: $theme)
+}
+` as GeneratedMutation<
+  APITypes.GenerateWordSearchWordsMutationVariables,
+  APITypes.GenerateWordSearchWordsMutation
+>;
 export const createWordSearch = /* GraphQL */ `mutation CreateWordSearch(
   $input: CreateWordSearchInput!
   $condition: ModelWordSearchConditionInput

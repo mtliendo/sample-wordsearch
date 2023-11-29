@@ -180,6 +180,14 @@ export type ModelSubscriptionIntInput = {
   notIn?: Array< number | null > | null,
 };
 
+export type GenerateWordSearchWordsMutationVariables = {
+  theme: string,
+};
+
+export type GenerateWordSearchWordsMutation = {
+  generateWordSearchWords: string,
+};
+
 export type CreateWordSearchMutationVariables = {
   input: CreateWordSearchInput,
   condition?: ModelWordSearchConditionInput | null,

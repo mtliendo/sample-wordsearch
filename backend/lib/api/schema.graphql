@@ -5,3 +5,7 @@ type WordSearch @model @auth(rules: [{ allow: public }]) {
 	rows: Int!
 	wordBank: [String]!
 }
+
+type Mutation {
+	generateWordSearchWords(theme: String!): String!
+}

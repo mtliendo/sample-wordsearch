@@ -1,14 +1,19 @@
 import React, { useEffect, useState } from 'react'
 import WordSearch from '@blex41/word-search'
 import { API } from 'aws-amplify'
-import { createWordSearch } from '@/src/graphql/mutations'
+import {
+	createWordSearch,
+	generateWordSearchWords,
+} from '@/src/graphql/mutations'
 import {
 	CreateWordSearchInput,
 	CreateWordSearchMutation,
+	GenerateWordSearchWordsMutation,
 	ListWordSearchesQuery,
 } from '@/src/API'
-import { GraphQLResult } from '@aws-amplify/api-graphql'
+import { GraphQLQuery } from '@aws-amplify/api'
 import { listWordSearches } from '@/src/graphql/queries'
+import { extractAndFormatArray } from '@/src/utils/api'
 
 function WordSearchApp() {
 	const [cols, setCols] = useState(6)
@@ -16,11 +21,16 @@ function WordSearchApp() {
 	const [words, setWords] = useState('')
 	const [wordBank, setWordBank] = useState<[] | string[]>([])
 	const [title, setTitle] = useState('')
+	const [wordTheme, setWordTheme] = useState('')
 
 	const [grid, setGrid] = useState([])
 
 	const handleGenerate = () => {
 		const dictionary = words.split(',').map((word) => word.trim())
+		//remove the empty string if it exists
+		if (dictionary.at(-1) === '') {
+			dictionary.pop()
+		}
 		const options = {
 			cols,
 			rows,
@@ -37,16 +47,32 @@ function WordSearchApp() {
 		setWordBank(pickedWords)
 	}
 
+	const generateWordsAI = async () => {
+		const result = await API.graphql<
+			GraphQLQuery<GenerateWordSearchWordsMutation>
+		>({
+			query: generateWordSearchWords,
+			variables: {
+				theme: wordTheme,
+			},
+		})
+		const wordsArr = extractAndFormatArray(
+			result.data?.generateWordSearchWords!
+		)
+
+		setWords(wordsArr.toString())
+	}
+
 	useEffect(() => {
-		const result = API.graphql({
+		const result = API.graphql<GraphQLQuery<ListWordSearchesQuery>>({
 			query: listWordSearches,
-		}) as Promise<GraphQLResult<ListWordSearchesQuery>>
+		})
 
 		result.then((res) => console.log(res.data?.listWordSearches?.items))
 	}, [])
 
 	const handleSave = () => {
-		const result = API.graphql({
+		const result = API.graphql<GraphQLQuery<CreateWordSearchMutation>>({
 			query: createWordSearch,
 			variables: {
 				input: {
@@ -56,7 +82,7 @@ function WordSearchApp() {
 					name: title,
 				} as CreateWordSearchInput,
 			},
-		}) as Promise<GraphQLResult<CreateWordSearchMutation>>
+		})
 	}
 
 	return (
@@ -103,6 +129,24 @@ function WordSearchApp() {
 					{/* Word Input */}
 					<div className="mb-4">
 						<label className="block text-gray-700 mb-2">
+							New! Enter a theme to autogenerate🪄
+							<input
+								value={wordTheme}
+								onChange={(e) => setWordTheme(e.target.value)}
+								placeholder="New Years Eve"
+								className="w-full mt-1 p-2 border rounded"
+							></input>
+						</label>
+						<button
+							onClick={generateWordsAI}
+							className="bg-pink-500 text-white px-4 py-2 rounded hover:bg-pink-600"
+						>
+							Generate Words
+						</button>
+					</div>
+					{/* Word Input */}
+					<div className="mb-4">
+						<label className="block text-gray-700 mb-2">
 							Words (comma-separated):
 							<textarea
 								value={words}
@@ -122,6 +166,7 @@ function WordSearchApp() {
 						>
 							Generate Grid
 						</button>
+
 						<button
 							onClick={handleSave}
 							className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"

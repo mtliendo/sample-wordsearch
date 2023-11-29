@@ -10,13 +10,5 @@ export class BackendStack extends cdk.Stack {
 		const amplifyAPI = createAmplifyGraphQLAPI(this, {
 			appName: appName,
 		})
-
-		new cdk.CfnOutput(this, 'GraphQLAPIURL', { value: amplifyAPI.graphqlUrl })
-		new cdk.CfnOutput(this, 'GraphQLAPIKey', {
-			value: amplifyAPI.apiKey || 'no string',
-		})
-		new cdk.CfnOutput(this, 'GraphQLAPIId', {
-			value: amplifyAPI.resources.graphqlApi.apiId,
-		})
 	}
 }
