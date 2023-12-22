@@ -34,7 +34,7 @@ function WordSearchApp() {
 		const options = {
 			cols,
 			rows,
-			disabledDirections: [],
+			disabledDirections: ['S', 'NE', 'SE', 'E'], //only backwards, and backwards diagonals allowed
 			dictionary,
 			upperCase: true,
 		}

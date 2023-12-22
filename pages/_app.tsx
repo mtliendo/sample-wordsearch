@@ -7,7 +7,7 @@ Amplify.configure({
 		'https://vj7he5giivhr7jebmk63l3hojq.appsync-api.us-east-1.amazonaws.com/graphql',
 	aws_appsync_region: 'us-east-1',
 	aws_appsync_authenticationType: 'API_KEY',
-	aws_appsync_apiKey: 'da2-pon767okvnhonmcxxgqno7iqfu',
+	aws_appsync_apiKey: 'da2-l7pxlifk2fhfreqwuf6slxlvrq',
 })
 
 export default function App({ Component, pageProps }: AppProps) {
